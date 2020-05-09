@@ -1,0 +1,7 @@
+src/
+.env
+.eslintrc.js
+.prettierrc
+tsconfig.json
+.circleci/
+test/

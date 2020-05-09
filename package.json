@@ -1,0 +1,55 @@
+{
+    "name": "xlsx-generator",
+    "version": "1.0.0",
+    "description": "xlsx file generator",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "rm -rf ./dist && tsc",
+        "prerestart": "tsc --watch",
+        "start": "node dist/index.js",
+        "start:pre": "ts-node src/index.ts",
+        "start:dev": "nodemon src/index.ts",
+        "test": "jest --maxWorkers=2",
+        "test:watch": "jest --watch",
+        "test:watchAll": "jest --watchAll"
+    },
+    "keywords": [
+        "xlsx",
+        "generator"
+    ],
+    "author": "Albert Li",
+    "license": "ISC",
+    "dependencies": {
+        "dotenv": "^8.2.0",
+        "fs-extra": "^9.0.0",
+        "ts-node": "^6.2.0",
+        "typescript": "^3.1.1",
+        "xlsx": "^0.15.6"
+    },
+    "devDependencies": {
+        "@types/dotenv": "^8.2.0",
+        "@types/fs-extra": "^8.1.0",
+        "@types/jest": "^25.2.1",
+        "@types/node": "^13.11.1",
+        "@types/xlsx": "0.0.36",
+        "jest": "^25.1.0",
+        "nodemon": "^2.0.2",
+        "prettier": "^2.0.5",
+        "ts-jest": "^25.2.1",
+        "tsconfig-paths": "^3.9.0"
+    },
+    "jest": {
+        "moduleFileExtensions": [
+            "js",
+            "json",
+            "ts"
+        ],
+        "rootDir": "test",
+        "testRegex": ".spec.ts$",
+        "transform": {
+            "^.+\\.(t|j)s$": "ts-jest"
+        },
+        "coverageDirectory": "../coverage",
+        "testEnvironment": "node"
+    }
+}
