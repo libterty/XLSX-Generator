@@ -47,12 +47,12 @@ export class Excel {
      */
     public async writeFileToExcel({ workBook = this.workBook, fileName = this._fileName }: { workBook?: WorkBook; fileName?: string } = {}): Promise<string | boolean> {
         const result = write(workBook, { bookType: 'xlsx', type: 'buffer', compression: true });
-        const _writeFile = writeFile(`./${fileName}.xlsx`, result);
+        const _writeFile = writeFile(`./reports/${fileName}.xlsx`, result);
         await awaitWrapper(_writeFile);
         return this.isFileExist(this._fileName);
     }
 
     private isFileExist(fileName: string): string | boolean {
-        return fileName ? path.join(__dirname, `${fileName}.xlsx`) : false;
+        return fileName ? path.join(__dirname, `./reports/${fileName}.xlsx`) : false;
     }
 }

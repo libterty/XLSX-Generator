@@ -48,3 +48,6 @@ ws.json
 
 # Ignore Heap Investigation josn file
 report.*.*.*.*.*.json
+
+# Test Report
+/reports
