@@ -1,4 +1,4 @@
-import { utils, WorkBook, WorkSheet, write } from 'xlsx';
+import { utils, WorkBook, WorkSheet, write, readFile } from 'xlsx';
 import * as path from 'path';
 import { writeFile } from 'fs-extra';
 import awaitWrapper from '../utils/await-wrapper';
@@ -45,14 +45,31 @@ export class Excel {
      * @param fileName inherit _fileName
      * @returns {Promise<void>}
      */
-    public async writeFileToExcel({ workBook = this.workBook, fileName = this._fileName }: { workBook?: WorkBook; fileName?: string } = {}): Promise<string | boolean> {
-        const result = write(workBook, { bookType: 'xlsx', type: 'buffer', compression: true });
-        const _writeFile = writeFile(`./reports/${fileName}.xlsx`, result);
-        await awaitWrapper(_writeFile);
-        return this.isFileExist(this._fileName);
+    public async writeFileToExcel(workBook?: WorkBook, fileName?: string): Promise<void> {
+        try {
+            fileName = fileName || this._fileName;
+            workBook = workBook || this.workBook;
+            const result = write(workBook, { bookType: 'xlsx', type: 'buffer', compression: true });
+            const _writeFile = writeFile(`./reports/${fileName}.xlsx`, result);
+            await awaitWrapper(_writeFile);
+            return;
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 
-    private isFileExist(fileName: string): string | boolean {
-        return fileName ? path.join(__dirname, `./reports/${fileName}.xlsx`) : false;
+    /**
+     *  Check if Excel File is exist
+     * @param fileName string
+     * @returns {boolean} if file is existing or not
+     */
+    public isFileExist(fileName?: string): boolean {
+        try {
+            fileName = fileName || this._fileName;
+            readFile(path.join(__dirname, `../../reports/${fileName}.xlsx`));
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 }

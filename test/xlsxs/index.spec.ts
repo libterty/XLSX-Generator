@@ -12,7 +12,23 @@ describe('# Excel Instances', (): void => {
             const result = await awaitWrapper(excel.writeFileToExcel());
             const _file = excel;
             expect(result).not.toBeUndefined;
-            expect(typeof result[1]).toEqual('string');
+        });
+    });
+
+    describe('# Read Existing Excel File', (): void => {
+        let excel: Excel = new Excel('readSheet', 'readUser');
+        let flag: boolean = false;
+
+        beforeAll(
+            async (): Promise<void> => {
+                await excel.writeFileToExcel();
+            },
+        );
+
+        it('Should be able to read file', async (): Promise<void> => {
+            flag = excel.isFileExist(excel._fileName);
+            expect(flag).toEqual(true);
+            return;
         });
     });
 });
