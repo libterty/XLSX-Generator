@@ -23,7 +23,7 @@ export class ExcelFormatter {
 
     /**
      * Set WorkBook Default Information
-     * @param {string} creator
+     * @param {string | null} creator
      */
     public SetWorkBookDefault(creator?: string): void {
         this._workBook.creator = creator || 'defaultUser';
