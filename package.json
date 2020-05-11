@@ -17,7 +17,15 @@
         "xlsx",
         "generator"
     ],
-    "author": "Albert Li",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:libterty/XLSX-Generator.git"
+    },
+    "bugs": {
+        "url": "https://github.com/libterty/XLSX-Generator/issues"
+    },
+    "homepage": "https://github.com/libterty/XLSX-Generator",
+    "author": "11",
     "license": "ISC",
     "dependencies": {
         "exceljs": "^3.9.0",
