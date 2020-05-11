@@ -1,75 +1,110 @@
-import { utils, WorkBook, WorkSheet, write, readFile } from 'xlsx';
+import * as fs from 'fs-extra';
 import * as path from 'path';
-import { writeFile } from 'fs-extra';
-import awaitWrapper from '../utils/await-wrapper';
+import * as Excel from 'exceljs';
 
-/**
- * Create an instance of Excel
- * Including method allow to `read` and `write`
- *
- * Declaring with providing `workSheetName` and `currentUser`
- * @param {workSheetName: string} `worksheet identity`
- * @param {currentUser} `providing ur username if not provided it will set to default value`
- * @returns {constructor}
- */
-export class Excel {
-    private readonly workBook?: WorkBook;
-    private readonly workSheet?: WorkSheet;
-    private readonly currentTime: number = new Date().getTime();
-    private readonly sheetTitles: Array<string | Array<string>> = ['image', 'name', ['groupA', 'groupB'], 'date'];
-    public readonly _currentUser: string = 'defaultUser';
-    public readonly _workSheetName: string = 'Default';
-    public readonly _fileName: string = `iSAP_${this._currentUser}_${this.currentTime}`;
-
-    constructor(workSheetName: string, currentUser: string) {
-        this.workBook = utils.book_new();
-        this.workSheet = utils.aoa_to_sheet([this.sheetTitles], { cellDates: true });
-        this._workSheetName = workSheetName;
-        this._currentUser = currentUser;
-        this.appendSheet(this.workBook, this.workSheet, this._workSheetName); // init sheet
+export class ExcelFormatter {
+    private _workBook: Excel.Workbook = undefined;
+    constructor() {
+        this._workBook = new Excel.Workbook();
     }
 
     /**
-     * create excel _workSheetName
-     * @param {workBook: WorkBook} `A dictionary of the worksheets in workbook`
-     * @param {workSheet: WorkSheet} `Indexing with a string map to an object`
-     * @param {workSheetName: string} `worksheet identity`
+     * Define JSON Schema by header
      */
-    private appendSheet(workBook: WorkBook, workSheet: WorkSheet, workSheetName: string): void {
-        utils.book_append_sheet(workBook, workSheet, workSheetName);
+    private _outStructure: object = {};
+    public GetWorkSheetHeader(): object {
+        return this._outStructure;
+    }
+    private SetWorkSheetHeader(headers: object[]) {
+        headers.forEach((header) => {
+            this._outStructure[header['key']] = '';
+        });
     }
 
     /**
-     * create new Excel File
-     * @param workBook inherit WorkBook
-     * @param fileName inherit _fileName
-     * @returns {Promise<void>}
+     * Set WorkBook Default Information
+     * @param {string} creator
      */
-    public async writeFileToExcel(workBook?: WorkBook, fileName?: string): Promise<void> {
+    public SetWorkBookDefault(creator?: string): void {
+        this._workBook.creator = creator || 'defaultUser';
+        this._workBook.properties.date1904 = true;
+    }
+
+    /**
+     *  Write Data to Excel
+     * @param {object[]} - header: worksheet title object array
+     * @param {object[]} - data: worksheet row data
+     * @param {string | null} - worksheet name
+     * @param {string | null} - workbook fileName
+     * @returns {object | void} - status
+     */
+    public async WriteFileToExcel(header: Object[], data: Object[]): Promise<object>;
+    public async WriteFileToExcel(header: Object[], data: Object[], sheetName: string, fileName: string): Promise<object>;
+    public async WriteFileToExcel(header: object[], data: object[], sheetName?: string, fileName?: string): Promise<object> {
         try {
-            fileName = fileName || this._fileName;
-            workBook = workBook || this.workBook;
-            const result = write(workBook, { bookType: 'xlsx', type: 'buffer', compression: true });
-            const _writeFile = writeFile(`./reports/${fileName}.xlsx`, result);
-            await awaitWrapper(_writeFile);
-            return;
+            sheetName = sheetName || 'default-sheet';
+            fileName = `${fileName}-output` || `excel-output`;
+            // WorkSheet name must to be created
+            const workSheet = this._workBook.addWorksheet(sheetName);
+            // define Header of all columns
+            workSheet.columns = header;
+            // declare output Structure
+            this.SetWorkSheetHeader(header);
+            // Import data
+            data.forEach((item) => {
+                workSheet.addRow(item);
+            });
+
+            await this._workBook.xlsx.writeFile(`${fileName}.xlsx`);
+
+            return {
+                status: 'success',
+                message: `Excel ${fileName} create success`,
+            };
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message);
         }
     }
 
     /**
-     *  Check if Excel File is exist
-     * @param fileName string
-     * @returns {boolean} if file is existing or not
+     *  Read File from Excel and construct data to JSON
+     * @param {string} - workbook name
+     * @param {string} - worksheet name
      */
-    public isFileExist(fileName?: string): boolean {
+    public async ReadFileFromExcel(fileName: string, sheetName: string): Promise<object[]> {
         try {
-            fileName = fileName || this._fileName;
-            readFile(path.join(__dirname, `../../reports/${fileName}.xlsx`));
-            return true;
+            // find and load workbook first
+            const _path: string = path.join(__dirname, `../../${fileName}.xlsx`);
+            const wb = await this._workBook.xlsx.readFile(_path);
+            // import sheet
+            const sheet = wb.getWorksheet(sheetName);
+            // data processing define
+            const map = this.GetWorkSheetHeader();
+            const mapKeys: string[] = Object.keys(map);
+            let cols = [];
+            let results = [];
+
+            sheet.eachRow({ includeEmpty: true }, (row, rowNum) => {
+                // remove header of the excel;
+                if (rowNum !== 1) {
+                    cols.push(row.values);
+                }
+            });
+
+            cols.forEach((col, index, array) => {
+                // remove default undefined where generated by exceljs
+                let newCol = col.slice(1);
+                // map data
+                let temp = {};
+                newCol.forEach((val, index, array) => {
+                    temp[mapKeys[index]] = val;
+                });
+                results.push(temp);
+            });
+
+            return results;
         } catch (error) {
-            return false;
+            throw new Error(error.message);
         }
     }
 }
