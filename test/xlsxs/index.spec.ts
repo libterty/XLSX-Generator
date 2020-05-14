@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { nanoid } from 'nanoid';
 import { ExcelFormatter } from '../../src/xlsxs/index';
+import { File } from '../../src/helpers/utilitys/file';
 
 describe('# Excel Instances', (): void => {
     describe('# Create New Excel File', (): void => {
@@ -8,6 +9,7 @@ describe('# Excel Instances', (): void => {
         let testSheet: string = 'test-sheet';
         let fileName: string = '';
 
+        const time: string = `${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}-${new Date().getMinutes()}`;
         beforeAll(() => {
             excel.SetWorkBookDefault('testUser');
         });
@@ -18,12 +20,15 @@ describe('# Excel Instances', (): void => {
                 { header: 'Name', key: 'name', width: 25 },
                 { header: 'Image', key: 'image', width: 50 },
             ];
+            const _path: string = path.join(__dirname, '../../workspace/custom/assets/popo.png');
+            const buffer: Buffer = File.ReadFile(_path);
+            const base64: string = buffer.toString('base64');
 
             const _data = [
-                { id: 'test1', name: 'testUser1', image: 'file/file/test1.jpg' },
-                { id: 'test2', name: 'testUser2', image: 'file/file/test2.jpg' },
-                { id: 'test3', name: 'testUser3', image: 'file/file/test3.jpg' },
-                { id: 'test4', name: 'testUser4', image: 'file/file/test4.jpg' },
+                { id: 'test1', name: 'testUser1', image: base64 },
+                { id: 'test2', name: 'testUser2', image: base64 },
+                { id: 'test3', name: 'testUser3', image: base64 },
+                { id: 'test4', name: 'testUser4', image: base64 },
             ];
 
             fileName = `test-${nanoid(5)}`;
@@ -31,12 +36,12 @@ describe('# Excel Instances', (): void => {
             const res = await excel.WriteFileToExcel(_header, _data, testSheet, fileName);
             expect(typeof res).toEqual('object');
             expect(res['status']).toEqual('success');
-            expect(res['message']).toEqual(`Excel ${fileName}-output create success`);
+            expect(res['message']).toMatch(`Excel ${fileName}-output-${time} create success`);
         });
 
         it('should be able to read excel', async () => {
             try {
-                const fakeJson = await excel.ReadFileFromExcel(`${fileName}-output`, testSheet);
+                const fakeJson = await excel.ReadFileFromExcel(`${fileName}-output-${time}`, testSheet);
                 expect(fakeJson[0]['id']).toEqual('test1');
                 expect(fakeJson[0]['name']).toEqual('testUser1');
                 expect(fakeJson[1]['id']).toEqual('test2');
@@ -49,6 +54,27 @@ describe('# Excel Instances', (): void => {
             } catch (error) {
                 throw new Error(error);
             }
+        });
+
+        it('should be able to write and show image', async (): Promise<void> => {
+            const _header = [
+                { header: 'Id', key: 'id', width: 10 },
+                { header: 'Name', key: 'name', width: 25 },
+                { header: 'Image', key: 'image', width: 50 },
+            ];
+
+            const _path: string = path.join(__dirname, '../../workspace/custom/assets/popo.png');
+            const buffer: Buffer = File.ReadFile(_path);
+            const base64: string = buffer.toString('base64');
+            const _data = [
+                { id: '123', name: 'test1', image: base64 },
+                { id: '124', name: 'test2', image: base64 },
+            ];
+
+            fileName = `write-Image`;
+
+            const res = await excel.WriteFileToExcel(_header, _data, 'Write-Image-Test', fileName);
+            console.log('res', res);
         });
     });
 });
