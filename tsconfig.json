@@ -10,6 +10,6 @@
         "experimentalDecorators": true,
         "lib": ["es2017", "ES2017.Object"]
     },
-    "include": ["src"],
+    "include": ["*"],
     "exclude": ["node_modules", "workspace", "test", ".env", ".env.example", "ws.json"]
 }
