@@ -1,6 +1,6 @@
 {
     "name": "xlsx-generator",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "xlsx file generator",
     "main": "dist/index.js",
     "scripts": {
